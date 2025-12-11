@@ -1,0 +1,134 @@
+#!/bin/bash
+# Before running the script, give it permission to execute.
+# chmod +x setup.sh
+
+set -e
+
+# Argiments parsing
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --user)
+            USERNAME="$2"
+            shift 2
+            ;;
+        # --password)
+        #     PASSWORD="$2"
+        #     shift 2
+        #     ;;
+        # --key)
+        #     SSH_KEY="$2"
+        #     shift 2
+        #     ;;
+        --ssh-port)
+            SSH_PORT="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown params: $1"
+            exit 1
+            ;;
+    esac
+done
+
+read -sp "Enter password for user $USERNAME: " PASSWORD
+echo
+read -sp "Confirm password: " PASSWORD_CONFIRM
+echo
+
+if [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; then
+    echo "Error: Passwords do not match"
+    exit 1
+fi
+
+if [ -z "$PASSWORD" ]; then
+    echo "Error: Password cannot be empty"
+    exit 1
+fi
+
+read -sp "Enter public ssh key for user $USERNAME: " SSH_KEY
+echo
+
+# Check arguments exists
+if [ -z "$USERNAME" ]; then
+    echo "Error: No username specified. Use --user"
+    exit 1
+fi
+
+
+
+if [ -z "$SSH_KEY" ]; then
+    echo "Error: SSH key cannot be empty"
+    exit 1
+fi
+
+if [ -z "$SSH_PORT" ]; then
+    echo "Error: SSH port not specified. Use --ssh-port"
+    exit 1
+fi
+
+# Check user exists
+if id "$USERNAME" &>/dev/null; then
+    echo "Error: User '$USERNAME' already exist"
+    exit 1
+fi
+
+# Check port is valid
+if ! [[ "$SSH_PORT" =~ ^[0-9]+$ ]] || [ "$SSH_PORT" -lt 1024 ] || [ "$SSH_PORT" -gt 65535 ]; then
+    echo "Error: Incorrect SSH port value '$SSH_PORT'. Should be in the range of 1024-65535"
+    exit 1
+fi
+
+# Create user if not exists
+if id "$USERNAME" &>/dev/null; then
+    echo "User '$USERNAME' already exists, skipping creation."
+else
+    adduser --gecos "" --disabled-password "$USERNAME"
+    echo "$USERNAME:$PASSWORD" | chpasswd
+    usermod -aG sudo "$USERNAME"
+fi
+
+# Add authorized SSH key if not present
+SSH_DIR="/home/$USERNAME/.ssh"
+AUTH_KEYS="$SSH_DIR/authorized_keys"
+mkdir -p "$SSH_DIR"
+touch "$AUTH_KEYS"
+if ! grep -Fxq "$SSH_KEY" "$AUTH_KEYS"; then
+    echo "$SSH_KEY" >> "$AUTH_KEYS"
+    echo "SSH key added for user '$USERNAME'."
+else
+    echo "SSH key already present for user '$USERNAME', skipping."
+fi
+chown -R "$USERNAME:$USERNAME" "$SSH_DIR"
+chmod 700 "$SSH_DIR"
+chmod 600 "$AUTH_KEYS"
+
+# UFW setup
+ufw allow "$SSH_PORT/tcp"
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw --force enable
+
+# SSH setup
+sed -i "s/^#\?Port .*/Port $SSH_PORT/" /etc/ssh/sshd_config
+sed -i 's/^PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+systemctl restart ssh
+
+# Docker install
+# Add Docker's official GPG key:
+apt-get update
+apt-get install ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Add docker permittion to user
+usermod -aG docker "$USERNAME"
