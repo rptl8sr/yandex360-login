@@ -1,0 +1,23 @@
+x-whoami-service: &whoami-service
+  <<: *service-base-with-proxy
+  image: containous/whoami
+  container_name: whoami
+  environment:
+    <<: *domain-env
+  labels:
+    # Enable Traefik for the service
+    traefik.enable: true
+
+    # Certificate resolver
+    traefik.http.routers.whoami.tls.certresolver: le
+
+    # Whoami router
+    traefik.http.routers.whoami.rule: Host(`${WHOAMI_DOMAIN}`)
+    traefik.http.routers.whoami.entrypoints: websecure
+    traefik.http.routers.whoami.tls: true
+    traefik.http.routers.whoami.service: whoami
+    traefik.http.services.whoami.loadbalancer.server.port: 80
+
+    # SslHeader middleware
+    # Apply oauth-errors so Traefik will redirect 401 -> /oauth2/sign_in (handled by oauth2-proxy)
+    traefik.http.routers.whoami.middlewares: oauth-errors@docker,oauth-auth@docker,SslHeader@docker

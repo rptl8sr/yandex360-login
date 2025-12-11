@@ -1,0 +1,48 @@
+x-postgres-env: &postgres-env
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_DB: ${POSTGRES_DB}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+x-domain-env: &domain-env
+  ROOT_DOMAIN: ${ROOT_DOMAIN}
+  TRAEFIK_DOMAIN: ${TRAEFIK_DOMAIN}
+  KEYCLOAK_DOMAIN: ${KEYCLOAK_DOMAIN}N}
+  PORTAINER_DOMAIN: ${PORTAINER_DOMAIN}
+  WHOAMI_DOMAIN: ${WHOAMI_DOMAIN}
+  OAUTH2_PROXY_DOMAIN: ${OAUTH2_PROXY_DOMAIN}
+
+x-network-proxy: &network-proxy
+  networks:
+    - proxy
+
+x-network-internal: &network-internal
+  networks:
+    - internal
+
+x-network-both: &network-both
+  networks:
+    - internal
+    - proxy
+
+x-service-base-with-proxy: &service-base-with-proxy
+  restart: unless-stopped
+  <<: *network-proxy
+
+
+x-service-base-with-internal: &service-base-with-internal
+  restart: unless-stopped
+  <<: *network-internal
+
+x-service-base-with-both : &service-base-with-both
+  restart: unless-stopped
+  <<: *network-both
+
+networks:
+  proxy:
+    name: proxy
+    driver: host
+
+  internal:
+    name: internal
+    internal: true
+    driver: bridge

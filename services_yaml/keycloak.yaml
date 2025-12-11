@@ -1,0 +1,56 @@
+
+x-keycloak-env: &keycloak-env
+  KEYCLOAK_DOMAIN: ${KEYCLOAK_DOMAIN:-keycloak.docker.localhost}
+  KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+  KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-changeme}
+  KEYCLOAK_DB_HOST: ${KEYCLOAK_DB_HOST:-postgres}
+  KEYCLOAK_DB_PORT: "${KEYCLOAK_DB_PORT:-5432}"
+  KEYCLOAK_DB_NAME: "${KEYCLOAK_DB_NAME:-keycloak}"
+  KEYCLOAK_DB_USER: "${KEYCLOAK_DB_USER:-keycloak}"
+  KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_pass}
+
+x-keycloak-service: &keycloak-service
+  <<: *service-base-with-both
+  build:
+    context: ./services_build/keycloak
+    dockerfile: Dockerfile
+  image: keycloak-russian:26.4.0-optimized
+  container_name: keycloak
+  depends_on:
+    postgres:
+      condition: service_healthy
+  environment:
+      <<: *keycloak-env
+
+      # DB environment variables
+      KC_DB: "postgres"
+      KC_DB_URL: "jdbc:postgresql://${KEYCLOAK_DB_HOST}:${KEYCLOAK_DB_PORT}/${KEYCLOAK_DB_NAME}"
+      KC_DB_USERNAME: "${KEYCLOAK_DB_USER}"
+      KC_DB_PASSWORD: "${KEYCLOAK_DB_PASSWORD}"
+      KC_HOSTNAME: "${KEYCLOAK_DOMAIN}"
+      
+      KEYCLOAK_ADMIN: "${KEYCLOAK_ADMIN}"
+      KEYCLOAK_ADMIN_PASSWORD: "${KEYCLOAK_ADMIN_PASSWORD}"
+
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_LOG_LEVEL: "INFO"
+  command: start
+  labels:
+    # Enable routing
+    traefik.enable: true
+
+    # Certificate resolver
+    traefik.http.routers.keycloak.tls.certresolver: le
+
+    # Keycloak router
+    traefik.http.routers.keycloak.rule: Host(`${KEYCLOAK_DOMAIN}`)
+    traefik.http.routers.keycloak.entrypoints: websecure
+    traefik.http.routers.keycloak.tls: true
+    traefik.http.routers.keycloak.service: keycloak
+    traefik.http.services.keycloak.loadbalancer.server.port: 8080
+
+    # SslHeader middleware
+    traefik.http.routers.keycloak.middlewares: SslHeader@docker

@@ -1,0 +1,31 @@
+#!/bin/bash
+# Helper to compose files and run docker compose command
+
+SERVICES_DIR="./services_yaml"
+BASE_FILE="./docker-compose.base.yaml"
+OVERRIDE_FILE="./docker-compose.yaml"
+
+# Build list of service files to include
+# Usage: ./compose.sh up whoami -d
+# Usage: ./compose.sh down
+# Usage: ./compose.sh ps
+
+# Collect all service files (or specify explicitly)
+SERVICE_FILES=""
+if [ -d "$SERVICES_DIR" ]; then
+  for svc_file in "$SERVICES_DIR"/*.yaml; do
+    if [ -f "$svc_file" ]; then
+      SERVICE_FILES="$SERVICE_FILES $svc_file"
+    fi
+  done
+fi
+
+# Build compose command
+COMPOSE_CMD="cat $BASE_FILE $SERVICE_FILES"
+[ -f "$OVERRIDE_FILE" ] && COMPOSE_CMD="$COMPOSE_CMD $OVERRIDE_FILE"
+
+# Execute docker compose with piped config
+eval "$COMPOSE_CMD" | docker compose -f - "$@"
+
+# Add to bin
+# sudo ln -s "$(pwd)/compose" /usr/local/bin/compose

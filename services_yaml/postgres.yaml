@@ -1,0 +1,13 @@
+x-postgres-service: &postgres-service
+  <<: *service-base-with-internal
+  image: postgres:16.4-alpine
+  container_name: postgres
+  volumes:
+    - ./services_data/postgres:/var/lib/postgresql/data
+  environment:
+    <<: *postgres-env
+  healthcheck:
+    test: ['CMD', 'pg_isready', '-U', '${POSTGRES_USER}']
+    interval: 10s
+    timeout: 5s
+    retries: 5

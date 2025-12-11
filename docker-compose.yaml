@@ -1,0 +1,13 @@
+services:
+  traefik:
+    <<: *traefik-service
+  whoami:
+    <<: *whoami-service
+  postgres: 
+    <<: *postgres-service
+  portainer:
+    <<: *portainer-service
+  keycloak:
+    <<: *keycloak-service
+  oauth2-proxy:
+    <<: *oauth2-proxy-service
