@@ -40,7 +40,6 @@ x-service-base-with-both : &service-base-with-both
 networks:
   proxy:
     name: proxy
-    driver: host
 
   internal:
     name: internal

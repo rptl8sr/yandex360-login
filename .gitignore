@@ -1,2 +1,9 @@
+.idea/
+.vscode/
+
+
+bin/
+services_data/*
+
 .DS_Store
 .env
