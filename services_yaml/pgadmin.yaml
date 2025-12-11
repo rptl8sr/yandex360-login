@@ -1,0 +1,28 @@
+x-pgadmin-env: &pgadmin-env
+  PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+  PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+
+x-pgadmin-service: &pgadmin-service
+  <<: *service-base-with-both
+  image: dpage/pgadmin4:9.11.0
+  container_name: pgadmin
+  volumes:
+    - ./services_data/pgadmin:/var/lib/pgadmin
+  depends_on:
+    postgres:
+      condition: service_healthy
+  environment:
+    <<: *pgadmin-env
+  labels:
+    # Enable Traefik for the service
+    traefik.enable: true
+
+    # Certificate resolver
+    traefik.http.routers.pgadmin.tls.certresolver: le
+
+    # PgAdmin router
+    traefik.http.routers.pgadmin.rule: Host(`${PGADMIN_DOMAIN}`)
+    traefik.http.routers.pgadmin.entrypoints: websecure
+    traefik.http.routers.pgadmin.tls: true
+    traefik.http.routers.pgadmin.service: pgadmin
+    traefik.http.services.pgadmin.loadbalancer.server.port: 80

@@ -6,7 +6,6 @@ x-portainer-service: &portainer-service
   <<: *service-base-with-proxy
   image: portainer/portainer-ce:2.35.0-alpine
   container_name: portainer
-
   security_opt:
     - no-new-privileges:true
   volumes:

@@ -10,6 +10,7 @@ x-domain-env: &domain-env
   PORTAINER_DOMAIN: ${PORTAINER_DOMAIN}
   WHOAMI_DOMAIN: ${WHOAMI_DOMAIN}
   OAUTH2_PROXY_DOMAIN: ${OAUTH2_PROXY_DOMAIN}
+  PGADMIN_DOMAIN: ${PGADMIN_DOMAIN}
 
 x-network-proxy: &network-proxy
   networks:

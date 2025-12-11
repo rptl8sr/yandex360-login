@@ -5,6 +5,8 @@ services:
     <<: *whoami-service
   postgres: 
     <<: *postgres-service
+  pgadmin:
+    <<: *pgadmin-service
   portainer:
     <<: *portainer-service
   keycloak:
