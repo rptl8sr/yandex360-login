@@ -1,5 +1,5 @@
 x-portainer-env: &portainer-env
-  PORTAINER_DOMAIN: ${PORTAINER_DOMAIN:-portainer.docker.localhost}
+  PORTAINER_DOMAIN: ${PORTAINER_DOMAIN}
   PORTAINER_BASIC_AUTH_USERS: ${PORTAINER_BASIC_AUTH_USERS}
 
 x-portainer-service: &portainer-service
