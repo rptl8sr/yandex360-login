@@ -15,6 +15,8 @@ providers:
     endpoint: 'unix:///var/run/docker.sock'
     exposedByDefault: false
     network: proxy
+  file:
+    filename: /etc/traefik/dynamic_conf.yaml
 
 api:
   dashboard: true
