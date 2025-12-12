@@ -30,29 +30,7 @@ x-portainer-service: &portainer-service
     traefik.http.services.portainer.loadbalancer.server.port: 9000
 
     # Middlewares: Add Basic Auth and the custom CSP
-    traefik.http.routers.portainer.middlewares: portainer-auth@docker,portainer-csp@docker
+    traefik.http.routers.portainer.middlewares: portainer-auth@docker,portainer-csp@file
 
     # Basic Auth Middleware
     traefik.http.middlewares.portainer-auth.basicauth.users: ${PORTAINER_BASIC_AUTH_USERS}
-
-    # Portainer-specific CSP middleware (to override the global one from the file)
-    traefik.http.middlewares.portainer-csp.headers.frameDeny: true
-    traefik.http.middlewares.portainer-csp.headers.accessControlAllowMethods: GET,OPTIONS,PUT
-    traefik.http.middlewares.portainer-csp.headers.accessControlAllowOriginList: origin-list-or-null
-    traefik.http.middlewares.portainer-csp.headers.accessControlMaxAge: 100
-    traefik.http.middlewares.portainer-csp.headers.addVaryHeader: true
-    traefik.http.middlewares.portainer-csp.headers.browserXssFilter: true
-    traefik.http.middlewares.portainer-csp.headers.contentTypeNosniff: true
-    traefik.http.middlewares.portainer-csp.headers.forceSTSHeader: true
-    traefik.http.middlewares.portainer-csp.headers.stsIncludeSubdomains: true
-    traefik.http.middlewares.portainer-csp.headers.stsPreload: true
-    traefik.http.middlewares.portainer-csp.headers.contentSecurityPolicy: >-
-      default-src 'self' 'unsafe-inline' 'unsafe-eval' data:;
-      font-src 'self' data:;
-      img-src 'self' data: blob:;
-      style-src 'self' 'unsafe-inline';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval'      
-    traefik.http.middlewares.portainer-csp.headers.customFrameOptionsValue: SAMEORIGIN
-    traefik.http.middlewares.portainer-csp.headers.referrerPolicy: same-origin
-    traefik.http.middlewares.portainer-csp.headers.permissionsPolicy: vibrate 'self'
-    traefik.http.middlewares.portainer-csp.headers.stsSeconds: 315360000
