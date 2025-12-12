@@ -26,17 +26,6 @@ providers:
     filename: '/etc/traefik/dynamic_conf.yaml'
     watch: true
 
-certificatesResolvers:
-  le:
-    acme:
-      email: '${TRAEFIK_ACME_EMAIL}'
-      storage: '/letsencrypt/acme.json'
-      httpChallenge:
-        entryPoint: 'web'
-
-log:
-  level: '${TRAEFIK_LOG_LEVEL}'
-
 accessLog: {}
 
 metrics:

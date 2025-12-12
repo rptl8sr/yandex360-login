@@ -1,8 +1,12 @@
 x-traefik-env: &traefik-env
   <<: *domain-env  
   TRAEFIK_BASIC_AUTH_USERS: ${TRAEFIK_BASIC_AUTH_USERS}
-  TRAEFIK_ACME_EMAIL: ${TRAEFIK_ACME_EMAIL}
-  TRAEFIK_LOG_LEVEL: ${TRAEFIK_LOG_LEVEL:-info}
+
+  # Traefik static config via env vars
+  TRAEFIK_LOG_LEVEL: ${TRAEFIK_LOG_LEVEL:-INFO}
+  TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_EMAIL: ${TRAEFIK_ACME_EMAIL}
+  TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_STORAGE: /letsencrypt/acme.json
+  TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_HTTPCHALLENGE_ENTRYPOINT: web
 
 x-traefik-service: &traefik-service
   <<: *service-base-with-proxy
