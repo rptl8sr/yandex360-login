@@ -34,6 +34,13 @@ x-traefik-service: &traefik-service
     - '--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}'
     - '--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json'
     - '--certificatesresolvers.le.acme.httpchallenge.entrypoint=web'
+
+    # -- TLS Options --
+    - '--tls.options.default.minVersion=VersionTLS12'
+    - '--tls.options.default.sniStrict=true'
+    - '--tls.options.default.curvePreferences=CurveP521,CurveP384'
+    - '--tls.options.default.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256'
+
   ports:
     - 80:80
     - 443:443
@@ -52,7 +59,7 @@ x-traefik-service: &traefik-service
     traefik.http.routers.dashboard.service: "api@internal"
     traefik.http.routers.dashboard.tls: "true"
     traefik.http.routers.dashboard.tls.certresolver: "le"
-    traefik.http.routers.dashboard.tls.options: "default@file"
+    traefik.http.routers.dashboard.tls.options: "default"
 
     # -- Middlewares --
     traefik.http.routers.dashboard.middlewares: "dashboard-auth@docker,SslHeader@file"
