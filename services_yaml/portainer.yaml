@@ -22,13 +22,25 @@ x-portainer-service: &portainer-service
     traefik.http.routers.portainer.service: portainer
     traefik.http.routers.portainer.rule: Host(`${PORTAINER_DOMAIN}`)
     traefik.http.routers.portainer.entrypoints: websecure
-    # Redundant TLS labels removed as 'websecure' entrypoint handles it globally
 
     # Define the service port
     traefik.http.services.portainer.loadbalancer.server.port: 9000
 
-    # Define Basic Auth middleware
+    # -- Middlewares --
+    # 1. Define Basic Auth middleware
     traefik.http.middlewares.portainer-auth.basicauth.users: ${PORTAINER_BASIC_AUTH_USERS}
 
-    # Apply middlewares: Basic Auth and Security Headers
-    traefik.http.routers.portainer.middlewares: portainer-auth@docker,security-headers@file
+    # 2. Define Portainer-specific security headers with a relaxed CSP
+    traefik.http.middlewares.portainer-headers.headers.frameDeny: true
+    traefik.http.middlewares.portainer-headers.headers.browserXssFilter: true
+    traefik.http.middlewares.portainer-headers.headers.contentTypeNosniff: true
+    traefik.http.middlewares.portainer-headers.headers.stsIncludeSubdomains: true
+    traefik.http.middlewares.portainer-headers.headers.stsPreload: true
+    traefik.http.middlewares.portainer-headers.headers.stsSeconds: 31536000
+    traefik.http.middlewares.portainer-headers.headers.customFrameOptionsValue: 'SAMEORIGIN'
+    traefik.http.middlewares.portainer-headers.headers.referrerPolicy: 'strict-origin-when-cross-origin'
+    traefik.http.middlewares.portainer-headers.headers.contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self';"
+    traefik.http.middlewares.portainer-headers.headers.permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()"
+
+    # 3. Apply both middlewares to the router
+    traefik.http.routers.portainer.middlewares: portainer-auth@docker,portainer-headers@docker

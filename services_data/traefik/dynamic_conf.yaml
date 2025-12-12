@@ -13,5 +13,6 @@ http:
         stsSeconds: 31536000
         customFrameOptionsValue: 'SAMEORIGIN'
         referrerPolicy: 'strict-origin-when-cross-origin'
+        # This is the strict, default policy for all services except Portainer
         contentSecurityPolicy: "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';"
         permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()"
