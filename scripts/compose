@@ -17,7 +17,7 @@ INIT_SCRIPT="./scripts/init"
 # Run initialization script
 if [[ " $@ " =~ " up " ]]; then
   if [ -f "$INIT_SCRIPT" ]; then
-    ./scripts/init
+    $INIT_SCRIPT
   fi
 fi
 

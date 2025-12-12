@@ -1,10 +1,12 @@
 #!/bin/bash
 # This script runs initialization tasks before starting services.
 
+SERVICES_DATA_DIR="./services_data"
+
 # Set ownership for pgadmin data volume
-if [ -d "./services_data/pgadmin" ]; then
+if [ -d "$SERVICES_DATA_DIR/pgadmin" ]; then
   echo "Setting ownership for pgadmin data volume..."
-  sudo chown -R 5050:5050 ./services_data/pgadmin
+  sudo chown -R 5050:5050 $SERVICES_DATA_DIR/pgadmin
 fi
 
 # You can add other initialization tasks here.
