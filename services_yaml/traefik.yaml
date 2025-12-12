@@ -17,7 +17,6 @@ x-traefik-service: &traefik-service
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
     <<: *traefik-env
-    
   command:
     # Entrypoints
     - "--entrypoints.web.address=:80"
@@ -46,6 +45,11 @@ x-traefik-service: &traefik-service
     traefik.http.routers.dashboard.rule: Host(`${TRAEFIK_DOMAIN}`)
     traefik.http.routers.dashboard.entrypoints: websecure
     traefik.http.routers.dashboard.service: api@internal
-    # Middlewares for the dashboard
+
+    # Define the middleware via labels, to be discovered by the Docker provider
     traefik.http.middlewares.dashboard-auth.basicauth.users: ${TRAEFIK_BASIC_AUTH_USERS}
+
+    # Apply the middlewares to the router
+    # dashboard-auth is defined in these labels -> use @docker
+    # security-headers is defined in dynamic_conf.yaml -> use @file
     traefik.http.routers.dashboard.middlewares: dashboard-auth@docker,security-headers@file
