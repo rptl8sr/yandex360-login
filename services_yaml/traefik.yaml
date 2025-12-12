@@ -1,5 +1,6 @@
 x-traefik-env: &traefik-env
-  <<: *domain-env  
+  <<: *domain-env
+  TRAEFIK_BASIC_AUTH_USERS: ${TRAEFIK_BASIC_AUTH_USERS}
 
 x-traefik-service: &traefik-service
   <<: *service-base-with-proxy
@@ -13,24 +14,38 @@ x-traefik-service: &traefik-service
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - ./services_data/traefik/internal/letsencrypt:/letsencrypt
-    - ./services_data/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
     <<: *traefik-env
-    TRAEFIK_BASIC_AUTH_USERS: ${TRAEFIK_BASIC_AUTH_USERS} # <-- Keep this for middleware
+    
   command:
-    - "--configfile=/etc/traefik/traefik.yaml"
-    - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}" # <-- Override log level
-    - "--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}" # <-- Override ACME email
+    # Entrypoints
+    - "--entrypoints.web.address=:80"
+    - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+    - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    - "--entrypoints.websecure.address=:443"
+    # Providers
+    - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+    - "--providers.docker.exposedbydefault=false"
+    - "--providers.docker.network=proxy"
+    - "--providers.file.filename=/etc/traefik/dynamic_conf.yaml"
+    # API & Dashboard
+    - "--api.dashboard=true"
+    - "--api.insecure=false"
+    # Cert Resolver
+    - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+    - "--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}"
+    # Logging & Metrics
+    - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
+    - "--accesslog=true"
+    - "--metrics.prometheus=true"
   labels:
-    # Enable Traefik for the service
     traefik.enable: true
-
     # Dashboard router
     traefik.http.routers.dashboard.rule: Host(`${TRAEFIK_DOMAIN}`)
     traefik.http.routers.dashboard.entrypoints: websecure
     traefik.http.routers.dashboard.service: api@internal
-
-    # Middlewares
+    # Middlewares for the dashboard
     traefik.http.middlewares.dashboard-auth.basicauth.users: ${TRAEFIK_BASIC_AUTH_USERS}
     traefik.http.routers.dashboard.middlewares: dashboard-auth@docker,security-headers@file
