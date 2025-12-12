@@ -1,14 +1,25 @@
 #!/bin/bash
 # Helper to compose files and run docker compose command
 
+
+
 SERVICES_DIR="./services_yaml"
 BASE_FILE="./docker-compose.base.yaml"
 OVERRIDE_FILE="./docker-compose.yaml"
+INIT_SCRIPT="./scripts/init"
+
 
 # Build list of service files to include
 # Usage: ./compose.sh up whoami -d
 # Usage: ./compose.sh down
 # Usage: ./compose.sh ps
+
+# Run initialization script
+if [[ " $@ " =~ " up " ]]; then
+  if [ -f "$INIT_SCRIPT" ]; then
+    ./scripts/init
+  fi
+fi
 
 # Collect all service files (or specify explicitly)
 SERVICE_FILES=""

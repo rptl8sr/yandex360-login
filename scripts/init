@@ -1,0 +1,28 @@
+#!/bin/bash
+# This script runs initialization tasks before starting services.
+
+# Set ownership for pgadmin data volume
+if [ -d "./services_data/pgadmin" ]; then
+  echo "Setting ownership for pgadmin data volume..."
+  sudo chown -R 5050:5050 ./services_data/pgadmin
+fi
+
+# You can add other initialization tasks here.
+# For example, to source environment variables and create a database:
+#
+# if [ -f ".env" ]; then
+#   set -a # automatically export all variables
+#   source .env
+#   set +a
+# fi
+#
+# if [ -n "$POSTGRES_DB" ]; then
+#   echo "Creating database $POSTGRES_DB if it doesn\'t exist..."
+#   # This is a simple example. It assumes your postgres service is named 'postgres'
+#   # and that you can connect without a password from within the docker network.
+#   # You might need to adjust the command based on your setup.
+#   docker compose exec -T postgres psql -U "$POSTGRES_USER" -d postgres -c "SELECT 1 FROM pg_database WHERE datname = \'$POSTGRES_DB\'" | grep -q 1 || \
+#     docker compose exec -T postgres psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE \\\"$POSTGRES_DB\\\""
+# fi
+
+echo "Initialization complete."
