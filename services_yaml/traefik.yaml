@@ -10,11 +10,28 @@ x-traefik-service: &traefik-service
   security_opt:
     - no-new-privileges:true
   command:
+    # -- Static config --
+    - '--api.dashboard=true'
+    - '--log.level=INFO'
+    - '--accesslog=true'
+    - '--metrics.prometheus=true'
+
+    # -- Providers --
+    - '--providers.docker=true'
+    - '--providers.docker.exposedbydefault=false'
+    - '--providers.docker.network=proxy'
+    - '--providers.file.filename=/etc/traefik/dynamic_conf.yaml'
+    - '--providers.file.watch=true'
+
+    # -- Entrypoints --
     - '--entrypoints.web.address=:80'
     - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
     - '--entrypoints.web.http.redirections.entrypoint.scheme=https'
     - '--entrypoints.websecure.address=:443'
     - '--entrypoints.websecure.http.tls=true'
+    - '--entrypoints.websecure.http.tls.options=default@file'
+
+    # -- Certificate Resolvers --
     - '--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}'
     - '--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json'
     - '--certificatesresolvers.le.acme.httpchallenge.entrypoint=web'
@@ -24,20 +41,20 @@ x-traefik-service: &traefik-service
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - ./services_data/traefik/internal/letsencrypt:/letsencrypt
-    - ./services_data/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
     <<: *traefik-env
   labels:
     traefik.enable: "true"
 
-    # Dashboard router
+    # -- Dashboard Router --
     traefik.http.routers.dashboard.rule: "Host(`${TRAEFIK_DOMAIN}`)"
     traefik.http.routers.dashboard.entrypoints: "websecure"
     traefik.http.routers.dashboard.service: "api@internal"
     traefik.http.routers.dashboard.tls: "true"
     traefik.http.routers.dashboard.tls.certresolver: "le"
+    traefik.http.routers.dashboard.tls.options: "default@file"
 
-    # Middlewares
+    # -- Middlewares --
     traefik.http.routers.dashboard.middlewares: "dashboard-auth@docker,SslHeader@file"
     traefik.http.middlewares.dashboard-auth.basicauth.users: "${TRAEFIK_BASIC_AUTH_USERS}"
