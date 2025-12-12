@@ -16,7 +16,6 @@ entryPoints:
     http:
       tls:
         certResolver: 'le'
-        options: 'default@file'
 
 providers:
   docker:

@@ -34,6 +34,8 @@ x-traefik-service: &traefik-service
     traefik.http.routers.dashboard.rule: Host(`${TRAEFIK_DOMAIN}`)
     traefik.http.routers.dashboard.entrypoints: websecure
     traefik.http.routers.dashboard.service: api@internal
+    traefik.http.routers.dashboard.tls.options: default@file
 
-    # Basic-auth middleware
-    traefik.http.routers.dashboard.middlewares: security-headers@file
+    # Middlewares
+    traefik.http.middlewares.dashboard-auth.basicauth.users: ${TRAEFIK_BASIC_AUTH_USERS}
+    traefik.http.routers.dashboard.middlewares: dashboard-auth@docker,security-headers@file
