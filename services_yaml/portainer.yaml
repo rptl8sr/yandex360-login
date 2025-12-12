@@ -10,7 +10,7 @@ x-portainer-service: &portainer-service
     - no-new-privileges:true
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./services_data/portainer:/data
+    - ./services_data/portainer/internal/data:/data
   environment:
     <<: *portainer-env
   command: -H unix:///var/run/docker.sock

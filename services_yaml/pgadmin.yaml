@@ -7,8 +7,8 @@ x-pgadmin-service: &pgadmin-service
   image: dpage/pgadmin4:9.11.0
   container_name: pgadmin
   volumes:
-    - ./services_data/pgadmin:/var/lib/pgadmin # sudo chown -R 5050:5050 ./services_data/pgadmin
-    - ./services_data/pgadmin/servers:/pgadmin/servers
+    - ./services_data/pgadmin/internal/pgadmin:/var/lib/pgadmin # sudo chown -R 5050:5050 ./services_data/pgadmin
+    - ./services_data/pgadmin/internal/servers:/pgadmin/servers
   depends_on:
     postgres:
       condition: service_healthy

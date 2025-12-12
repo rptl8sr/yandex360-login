@@ -15,7 +15,7 @@ x-traefik-service: &traefik-service
     - 443:443
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./services_data/traefik/letsencrypt:/letsencrypt
+    - ./services_data/traefik/internal/letsencrypt:/letsencrypt
     - ./services_data/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
