@@ -16,7 +16,7 @@ entryPoints:
     http:
       tls:
         certResolver: 'le'
-        options: 'default' # <-- Apply options directly here
+        options: 'default'
 
 providers:
   docker:
@@ -26,7 +26,6 @@ providers:
     filename: '/etc/traefik/dynamic_conf.yaml'
     watch: true
 
-# Define TLS options statically
 tls:
   options:
     default:
@@ -41,6 +40,13 @@ tls:
         - 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256'
 
 accessLog: {}
-
+log: {}
 metrics:
   prometheus: {}
+
+certificatesResolvers:
+  le:
+    acme:
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web

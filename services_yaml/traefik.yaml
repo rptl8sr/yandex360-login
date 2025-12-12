@@ -1,12 +1,5 @@
 x-traefik-env: &traefik-env
   <<: *domain-env  
-  TRAEFIK_BASIC_AUTH_USERS: ${TRAEFIK_BASIC_AUTH_USERS}
-
-  # Traefik static config via env vars
-  TRAEFIK_LOG_LEVEL: ${TRAEFIK_LOG_LEVEL:-INFO}
-  TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_EMAIL: ${TRAEFIK_ACME_EMAIL}
-  TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_STORAGE: /letsencrypt/acme.json
-  TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_HTTPCHALLENGE_ENTRYPOINT: web
 
 x-traefik-service: &traefik-service
   <<: *service-base-with-proxy
@@ -24,8 +17,11 @@ x-traefik-service: &traefik-service
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
     <<: *traefik-env
+    TRAEFIK_BASIC_AUTH_USERS: ${TRAEFIK_BASIC_AUTH_USERS} # <-- Keep this for middleware
   command:
     - "--configfile=/etc/traefik/traefik.yaml"
+    - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}" # <-- Override log level
+    - "--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}" # <-- Override ACME email
   labels:
     # Enable Traefik for the service
     traefik.enable: true
