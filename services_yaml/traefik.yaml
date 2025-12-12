@@ -2,6 +2,7 @@ x-traefik-env: &traefik-env
   <<: *domain-env  
   TRAEFIK_BASIC_AUTH_USERS: ${TRAEFIK_BASIC_AUTH_USERS}
   TRAEFIK_ACME_EMAIL: ${TRAEFIK_ACME_EMAIL}
+  TRAEFIK_LOG_LEVEL: ${TRAEFIK_LOG_LEVEL:-info}
 
 x-traefik-service: &traefik-service
   <<: *service-base-with-proxy
@@ -12,79 +13,23 @@ x-traefik-service: &traefik-service
   ports:
     - 80:80
     - 443:443
-    - 8080:8080
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - ./services_data/traefik/letsencrypt:/letsencrypt
+    - ./services_data/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
+    - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
     <<: *traefik-env
   command:
-    # EntryPoints
-    - "--entrypoints.web.address=:80"
-    - "--entrypoints.websecure.address=:443"
-    - "--entrypoints.websecure.http.tls=true"
-    - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-    - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-    - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
-
-    # Let's Encrypt configuration
-    - "--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}"
-    - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-    - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-
-    # Providers
-    - "--providers.docker=true"
-    - "--providers.docker.exposedbydefault=false"
-    - "--providers.docker.network=proxy"
-
-    # API & Dashboard
-    - "--api.dashboard=true"
-    - "--api.insecure=false"
-
-    # Observability
-    - "--log.level=INFO"
-    - "--accesslog=true"
-    - "--metrics.prometheus=true"
-
-    # TLS Options
-    # - "--providers.docker.defaultRule=Host(`{{ trimPrefix `/` .Name }}.docker.localhost`)"
-    # - "--entryPoints.websecure.http.tls.options=default@docker"
+    - "--configfile=/etc/traefik/traefik.yaml"
   labels:
     # Enable Traefik for the service
     traefik.enable: true
-
-    # Certificate resolver
-    traefik.http.routers.dashboard.tls.certresolver: le
 
     # Dashboard router
     traefik.http.routers.dashboard.rule: Host(`${TRAEFIK_DOMAIN}`)
     traefik.http.routers.dashboard.entrypoints: websecure
     traefik.http.routers.dashboard.service: api@internal
-    traefik.http.routers.dashboard.tls: true
 
     # Basic-auth middleware
-    traefik.http.middlewares.dashboard-auth.basicauth.users: ${TRAEFIK_BASIC_AUTH_USERS}
-    traefik.http.routers.dashboard.middlewares: dashboard-auth@docker,SslHeader@docker
-
-    # SslHeader middleware definition
-    traefik.http.middlewares.SslHeader.headers.frameDeny: true
-    traefik.http.middlewares.SslHeader.headers.accessControlAllowMethods: GET,OPTIONS,PUT
-    traefik.http.middlewares.SslHeader.headers.accessControlAllowOriginList: origin-list-or-null
-    traefik.http.middlewares.SslHeader.headers.accessControlMaxAge: 100
-    traefik.http.middlewares.SslHeader.headers.addVaryHeader: true
-    traefik.http.middlewares.SslHeader.headers.browserXssFilter: true
-    traefik.http.middlewares.SslHeader.headers.contentTypeNosniff: true
-    traefik.http.middlewares.SslHeader.headers.forceSTSHeader: true
-    traefik.http.middlewares.SslHeader.headers.stsIncludeSubdomains: true
-    traefik.http.middlewares.SslHeader.headers.stsPreload: true
-    traefik.http.middlewares.SslHeader.headers.contentSecurityPolicy: "default-src 'self' 'unsafe-inline'"
-    traefik.http.middlewares.SslHeader.headers.customFrameOptionsValue: SAMEORIGIN
-    traefik.http.middlewares.SslHeader.headers.referrerPolicy: same-origin
-    traefik.http.middlewares.SslHeader.headers.permissionsPolicy: "vibrate 'self'"
-    traefik.http.middlewares.SslHeader.headers.stsSeconds: 315360000
-
-    # TLS options definition
-    traefik.tls.options.default.minVersion: VersionTLS12
-    traefik.tls.options.default.sniStrict: true
-    traefik.tls.options.default.curvePreferences: CurveP521,CurveP384
-    traefik.tls.options.default.cipherSuites: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+    traefik.http.routers.dashboard.middlewares: security-headers@file
