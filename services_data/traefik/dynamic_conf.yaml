@@ -15,16 +15,3 @@ http:
         referrerPolicy: 'strict-origin-when-cross-origin'
         contentSecurityPolicy: "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';"
         permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()"
-
-tls:
-  options:
-    default:
-      minVersion: 'VersionTLS12'
-      sniStrict: true
-      curvePreferences:
-        - 'CurveP521'
-        - 'CurveP384'
-      cipherSuites:
-        - 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
-        - 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
-        - 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256'
