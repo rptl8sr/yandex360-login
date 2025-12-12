@@ -17,30 +17,38 @@ x-portainer-service: &portainer-service
   labels:
     # Enable routing
     traefik.enable: true
-
+    
     # Portainer router
-    traefik.http.routers.portainer.service: portainer
     traefik.http.routers.portainer.rule: Host(`${PORTAINER_DOMAIN}`)
     traefik.http.routers.portainer.entrypoints: websecure
-
-    # Define the service port
+    traefik.http.routers.portainer.service: portainer
     traefik.http.services.portainer.loadbalancer.server.port: 9000
 
-    # -- Middlewares --
-    # 1. Define Basic Auth middleware
-    traefik.http.middlewares.portainer-auth.basicauth.users: ${PORTAINER_BASIC_AUTH_USERS}
+    # Certificate resolver
+    traefik.http.routers.portainer.tls.certresolver: le
+    traefik.http.routers.portainer.tls: true
 
-    # 2. Define Portainer-specific security headers with a relaxed CSP
+    # Portainer header with relaxed CSP
     traefik.http.middlewares.portainer-headers.headers.frameDeny: true
+    traefik.http.middlewares.portainer-headers.headers.accessControlAllowMethods: GET,OPTIONS,PUT
+    traefik.http.middlewares.portainer-headers.headers.accessControlAllowOriginList: origin-list-or-null
+    traefik.http.middlewares.portainer-headers.headers.accessControlMaxAge: 100
+    traefik.http.middlewares.portainer-headers.headers.addVaryHeader: true
     traefik.http.middlewares.portainer-headers.headers.browserXssFilter: true
     traefik.http.middlewares.portainer-headers.headers.contentTypeNosniff: true
+    traefik.http.middlewares.portainer-headers.headers.forceSTSHeader: true
     traefik.http.middlewares.portainer-headers.headers.stsIncludeSubdomains: true
     traefik.http.middlewares.portainer-headers.headers.stsPreload: true
-    traefik.http.middlewares.portainer-headers.headers.stsSeconds: 31536000
-    traefik.http.middlewares.portainer-headers.headers.customFrameOptionsValue: 'SAMEORIGIN'
-    traefik.http.middlewares.portainer-headers.headers.referrerPolicy: 'strict-origin-when-cross-origin'
-    traefik.http.middlewares.portainer-headers.headers.contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self';"
-    traefik.http.middlewares.portainer-headers.headers.permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()"
+    traefik.http.middlewares.portainer-headers.headers.stsSeconds: 315360000
+    traefik.http.middlewares.portainer-headers.headers.customFrameOptionsValue: SAMEORIGIN
+    traefik.http.middlewares.portainer-headers.headers.referrerPolicy: same-origin
+    traefik.http.middlewares.portainer-headers.headers.permissionsPolicy: vibrate 'self'
+    traefik.http.middlewares.portainer-headers.headers.contentSecurityPolicy: >-
+      default-src 'self' 'unsafe-inline' 'unsafe-eval' data:;
+      font-src 'self' data:;
+      img-src 'self' data: blob:;
+      style-src 'self' 'unsafe-inline';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval'
 
-    # 3. Apply both middlewares to the router
-    traefik.http.routers.portainer.middlewares: portainer-auth@docker,portainer-headers@docker
+    # Portainer middleware
+    traefik.http.routers.portainer.middlewares: portainer-headers@docker
