@@ -19,3 +19,16 @@ x-traefik-service: &traefik-service
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
     <<: *traefik-env
+  labels:
+    traefik.enable: "true"
+
+    # Dashboard router
+    traefik.http.routers.dashboard.rule: "Host(`${TRAEFIK_DOMAIN}`)"
+    traefik.http.routers.dashboard.entrypoints: "websecure"
+    traefik.http.routers.dashboard.service: "api@internal"
+    traefik.http.routers.dashboard.tls: "true"
+    traefik.http.routers.dashboard.tls.certresolver: "le"
+
+    # Middlewares
+    traefik.http.routers.dashboard.middlewares: "dashboard-auth@docker,SslHeader@file"
+    traefik.http.middlewares.dashboard-auth.basicauth.users: "${TRAEFIK_BASIC_AUTH_USERS}"
