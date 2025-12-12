@@ -10,42 +10,14 @@ x-traefik-service: &traefik-service
   security_opt:
     - no-new-privileges:true
   command:
-    # -- Static config --
-    - '--api.dashboard=true'
-    - '--log.level=INFO'
-    - '--accesslog=true'
-    - '--metrics.prometheus=true'
-
-    # -- Providers --
-    - '--providers.docker=true'
-    - '--providers.docker.exposedbydefault=false'
-    - '--providers.docker.network=proxy'
-    - '--providers.file.filename=/etc/traefik/dynamic_conf.yaml'
-    - '--providers.file.watch=true'
-
-    # -- Entrypoints --
-    - '--entrypoints.web.address=:80'
-    - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
-    - '--entrypoints.web.http.redirections.entrypoint.scheme=https'
-    - '--entrypoints.websecure.address=:443'
-    - '--entrypoints.websecure.http.tls=true'
-
-    # -- Certificate Resolvers --
-    - '--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}'
-    - '--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json'
-    - '--certificatesresolvers.le.acme.httpchallenge.entrypoint=web'
-
-    # -- TLS Options --
-    - '--tls.options.default.minVersion=VersionTLS12'
-    - '--tls.options.default.sniStrict=true'
-    - '--tls.options.default.curvePreferences=CurveP521,CurveP384'
-    - '--tls.options.default.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256'
-
+    - "--configFile=/etc/traefik/traefik.yaml"
+    - "--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}"
   ports:
     - 80:80
     - 443:443
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
+    - ./services_data/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
     - ./services_data/traefik/internal/letsencrypt:/letsencrypt
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
