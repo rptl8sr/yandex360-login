@@ -1,7 +1,6 @@
 x-portainer-env: &portainer-env
   PORTAINER_DOMAIN: ${PORTAINER_DOMAIN}
-  PORTAINER_BASIC_AUTH_USERS: ${PORTAINER_BASIC_AUTH_USERS}
-
+  
 x-portainer-service: &portainer-service
   <<: *service-base-with-proxy
   image: portainer/portainer-ce:2.35.0-alpine
