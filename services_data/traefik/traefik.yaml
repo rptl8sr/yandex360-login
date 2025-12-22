@@ -35,7 +35,6 @@ entryPoints:
 certificatesResolvers:
   le:
     acme:
-      # Email is provided via environment variable at runtime
       storage: "/letsencrypt/acme.json"
       httpChallenge:
         entryPoint: "web"
