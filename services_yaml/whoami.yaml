@@ -20,4 +20,4 @@ x-whoami-service: &whoami-service
 
     # SslHeader middleware
     # Apply oauth-errors so Traefik will redirect 401 -> /oauth2/sign_in (handled by oauth2-proxy)
-    traefik.http.routers.whoami.middlewares: oauth-errors@docker,oauth-auth@docker,SslHeader@docker
+#    traefik.http.routers.whoami.middlewares: oauth-errors@docker,oauth-auth@docker,SslHeader@docker
