@@ -1,0 +1,15 @@
+version: '3'
+
+vars:
+  ENV_FILE: '.env'
+
+dotenv: [ '.env', '{{.ENV_FILE}}', '{{.SECRETS_DIR}}/{{.ENV_FILE}}' ]
+
+includes:
+  git:
+    taskfile: ./tasks/git/Taskfile.yaml
+
+tasks:
+  default:
+    cmds:
+      - task -l

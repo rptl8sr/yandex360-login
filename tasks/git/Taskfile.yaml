@@ -1,0 +1,13 @@
+version: '3'
+
+vars:
+  GIT_REMOTE_ORIGIN: origin
+  GIT_REMOTE_PRODUCTION: production
+  GIT_DEFAULT_BRANCH: main
+
+tasks:
+  push:
+    desc: Push changes to both remotes (origin and production)
+    cmds:
+      - git push {{.GIT_REMOTE_ORIGIN}} {{.GIT_DEFAULT_BRANCH}}
+      - git push {{.GIT_REMOTE_PRODUCTION}} {{.GIT_DEFAULT_BRANCH}}
