@@ -9,21 +9,33 @@ x-traefik-service: &traefik-service
   container_name: traefik
   security_opt:
     - no-new-privileges:true
-  command:
-    - "--configFile=/etc/traefik/traefik.yaml"
-    - "--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}"
   ports:
     - 80:80
     - 443:443
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./services_data/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
     - ./services_data/traefik/internal/letsencrypt:/letsencrypt
     - ./services_data/traefik/dynamic_conf.yaml:/etc/traefik/dynamic_conf.yaml:ro
   environment:
     <<: *traefik-env
   labels:
     traefik.enable: "true"
+
+    # -- Static Config (Global) --
+    traefik.api.dashboard: "true"
+    traefik.log.level: "INFO"
+    traefik.providers.docker.exposedByDefault: "false"
+    traefik.providers.docker.network: "proxy"
+    traefik.providers.file.filename: "/etc/traefik/dynamic_conf.yaml"
+    traefik.providers.file.watch: "true"
+    traefik.entryPoints.web.address: ":80"
+    traefik.entryPoints.web.http.redirections.entryPoint.to: "websecure"
+    traefik.entryPoints.web.http.redirections.entryPoint.scheme: "https"
+    traefik.entryPoints.websecure.address: ":443"
+    traefik.entryPoints.websecure.http.tls: "true"
+    traefik.certificatesResolvers.le.acme.storage: "/letsencrypt/acme.json"
+    traefik.certificatesResolvers.le.acme.httpChallenge.entryPoint: "web"
+    traefik.certificatesResolvers.le.acme.email: "${TRAEFIK_ACME_EMAIL}"
 
     # -- Dashboard Router --
     traefik.http.routers.dashboard.rule: "Host(`${TRAEFIK_DOMAIN}`)"
