@@ -22,21 +22,25 @@ x-keycloak-service: &keycloak-service
   environment:
       <<: *keycloak-env
 
-      # DB environment variables
       KC_DB: "postgres"
       KC_DB_URL: "jdbc:postgresql://${KEYCLOAK_DB_HOST}:${KEYCLOAK_DB_PORT}/${KEYCLOAK_DB_NAME}"
       KC_DB_USERNAME: "${KEYCLOAK_DB_USER}"
       KC_DB_PASSWORD: "${KEYCLOAK_DB_PASSWORD}"
       KC_HOSTNAME: "${KEYCLOAK_DOMAIN}"
-      
-      KEYCLOAK_ADMIN: "${KEYCLOAK_ADMIN}"
-      KEYCLOAK_ADMIN_PASSWORD: "${KEYCLOAK_ADMIN_PASSWORD}"
 
       KC_PROXY_HEADERS: "xforwarded"
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "INFO"
+
+      KC_HOSTNAME_STRICT_HTTPS: "true"
+  healthcheck:
+    test: [ "CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q '200 OK'" ]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 60s
   command: start
   labels:
     # Enable routing
